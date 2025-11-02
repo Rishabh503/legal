@@ -7,17 +7,16 @@ import { NextRequest } from 'next/server';
 // GET single lawyer by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ params is Promise
 ) {
   try {
     await connectDB();
-    const p=await params
-    console.log(p)
-    const lawyer = await Lawyer.findById(p.id)
+
+    const { id: lawyerId } = await params; // ✅ must await in Next.js 15
+
+    const lawyer = await Lawyer.findById(lawyerId)
       .populate('userId', 'firstName lastName email profileImage phone')
       .lean();
-
-      console.log(lawyer)
 
     if (!lawyer) {
       return createErrorResponse('Lawyer not found', 404);
@@ -32,33 +31,31 @@ export async function GET(
 // PATCH - Update lawyer profile
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ fix here
 ) {
   try {
     const { userId } = await auth();
-    
     if (!userId) {
       return createErrorResponse('Unauthorized', 401);
     }
 
     await connectDB();
- const p=await params
-    const lawyer = await Lawyer.findById(p.id);
+
+    const { id: lawyerId } = await params; // ✅ await params
+    const lawyer = await Lawyer.findById(lawyerId);
 
     if (!lawyer) {
       return createErrorResponse('Lawyer not found', 404);
     }
 
-    // Check if user owns this profile
     if (lawyer.clerkId !== userId) {
       return createErrorResponse('Forbidden', 403);
     }
 
     const body = await req.json();
 
-    // Update lawyer profile
     const updatedLawyer = await Lawyer.findByIdAndUpdate(
-      p.id,
+      lawyerId,
       { $set: body },
       { new: true, runValidators: true }
     ).populate('userId', 'firstName lastName email profileImage');
@@ -72,29 +69,27 @@ export async function PATCH(
 // DELETE - Deactivate lawyer profile
 export async function DELETE(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ fix here
 ) {
   try {
     const { userId } = await auth();
-    
     if (!userId) {
       return createErrorResponse('Unauthorized', 401);
     }
 
     await connectDB();
-    const p=await params
-    const lawyer = await Lawyer.findById(pid);
+
+    const { id: lawyerId } = await params; // ✅ await params
+    const lawyer = await Lawyer.findById(lawyerId);
 
     if (!lawyer) {
       return createErrorResponse('Lawyer not found', 404);
     }
 
-    // Check if user owns this profile
     if (lawyer.clerkId !== userId) {
       return createErrorResponse('Forbidden', 403);
     }
 
-    // Deactivate instead of delete
     lawyer.isActive = false;
     await lawyer.save();
 

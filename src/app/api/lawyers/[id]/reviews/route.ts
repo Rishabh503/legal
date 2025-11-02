@@ -7,27 +7,30 @@ import { NextRequest } from 'next/server';
 // GET all reviews for a specific lawyer
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> } // ✅ params is a Promise now
 ) {
   try {
     await connectDB();
 
-    // Check if lawyer exists
-        const p=await params
-    const lawyer = await Lawyer.findById(p.id);
+    const { id: lawyerId } = await params; // ✅ correctly awaited
+    if (!lawyerId) {
+      return createErrorResponse('Missing lawyer id', 400);
+    }
 
+    // Check if lawyer exists
+    const lawyer = await Lawyer.findById(lawyerId);
     if (!lawyer) {
       return createErrorResponse('Lawyer not found', 404);
     }
 
     const { searchParams } = new URL(req.url);
-    const page = parseInt(searchParams.get('page') || '1');
-    const limit = parseInt(searchParams.get('limit') || '10');
+    const page = parseInt(searchParams.get('page') || '1', 10);
+    const limit = parseInt(searchParams.get('limit') || '10', 10);
 
-    // Get reviews for this lawyer
-    const reviews = await Review.find({ 
-      lawyerId: p.id,
-      isVisible: true 
+    // Get visible reviews for this lawyer
+    const reviews = await Review.find({
+      lawyerId,
+      isVisible: true
     })
       .populate('clientId', 'firstName lastName profileImage')
       .sort({ createdAt: -1 })
@@ -35,15 +38,15 @@ export async function GET(
       .limit(limit)
       .lean();
 
-    const total = await Review.countDocuments({ 
-      lawyerId: p.id,
-      isVisible: true 
+    const total = await Review.countDocuments({
+      lawyerId,
+      isVisible: true
     });
 
     // Calculate rating distribution
-    const allReviews = await Review.find({ 
-      lawyerId: p.id,
-      isVisible: true 
+    const allReviews = await Review.find({
+      lawyerId,
+      isVisible: true
     }).select('rating');
 
     const ratingDistribution = {
@@ -51,7 +54,7 @@ export async function GET(
       4: allReviews.filter(r => r.rating === 4).length,
       3: allReviews.filter(r => r.rating === 3).length,
       2: allReviews.filter(r => r.rating === 2).length,
-      1: allReviews.filter(r => r.rating === 1).length,
+      1: allReviews.filter(r => r.rating === 1).length
     };
 
     return createSuccessResponse({

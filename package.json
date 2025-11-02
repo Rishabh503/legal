@@ -15,7 +15,7 @@
     "@react-three/drei": "^10.7.6",
     "@react-three/fiber": "^9.4.0",
     "clsx": "^2.1.1",
-     "date-fns": "^4.1.0",
+    "date-fns": "^4.1.0",
     "heroicons": "^2.2.0",
     "lucide-react": "^0.544.0",
     "moongose": "^1.0.0",
@@ -39,6 +39,6 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.3",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "5.9.3"
   }
 }

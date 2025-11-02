@@ -1,79 +1,62 @@
-import connectDB from '@/lib/db';
-import Booking from '@/lib/models/booking';
-import Lawyer from '@/lib/models/lawyer';
-import { createErrorResponse, createSuccessResponse, handleApiError } from '@/lib/utils/errorHandler';
-import { auth } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
+import connectDB from '@/lib/db'
+import Booking from '@/lib/models/booking'
+import Lawyer from '@/lib/models/lawyer'
+import { createErrorResponse, createSuccessResponse, handleApiError } from '@/lib/utils/errorHandler'
+import { auth } from '@clerk/nextjs/server'
+import { NextRequest } from 'next/server'
 
-// POST - Approve booking (Lawyer only)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  context: { params: Promise<{ id: string }> }
 ) {
   try {
-    const { userId } = await auth();
-    
+    const { userId } = await auth()
+
     if (!userId) {
-      return createErrorResponse('Unauthorized', 401);
+      return createErrorResponse('Unauthorized', 401)
     }
 
-    await connectDB();
+    await connectDB()
 
-    // Get lawyer
-    const lawyer = await Lawyer.findOne({ clerkId: userId });
-    
+    const { id } = await context.params // 👈 await the params now
+    const lawyer = await Lawyer.findOne({ clerkId: userId })
+
     if (!lawyer) {
-      return createErrorResponse('Only lawyers can approve bookings', 403);
+      return createErrorResponse('Only lawyers can approve bookings', 403)
     }
 
-    // Get booking
-    const booking = await Booking.findById(params.id);
-
+    const booking = await Booking.findById(id)
     if (!booking) {
-      return createErrorResponse('Booking not found', 404);
+      return createErrorResponse('Booking not found', 404)
     }
 
-    // Verify lawyer owns this booking
     if (booking.lawyerId.toString() !== lawyer._id.toString()) {
-      return createErrorResponse('Forbidden', 403);
+      return createErrorResponse('Forbidden', 403)
     }
 
-    // Check if booking is pending
     if (booking.status !== 'pending') {
-      return createErrorResponse('Only pending bookings can be approved', 400);
+      return createErrorResponse('Only pending bookings can be approved', 400)
     }
 
-    const body = await req.json();
-    const { confirmedDateTime, meetingLink, lawyerNotes } = body;
+    const body = await req.json()
+    const { confirmedDateTime, meetingLink, lawyerNotes } = body
 
-    // Update booking
-    booking.status = 'approved';
-    booking.approvedAt = new Date();
-    booking.confirmedDateTime = new Date(confirmedDateTime);
-    
-    if (meetingLink) {
-      booking.meetingLink = meetingLink;
-    }
-    
-    if (lawyerNotes) {
-      booking.lawyerNotes = lawyerNotes;
-    }
+    booking.status = 'approved'
+    booking.approvedAt = new Date()
+    booking.confirmedDateTime = new Date(confirmedDateTime)
 
-    await booking.save();
+    if (meetingLink) booking.meetingLink = meetingLink
+    if (lawyerNotes) booking.lawyerNotes = lawyerNotes
+
+    await booking.save()
 
     await booking.populate([
       { path: 'clientId', select: 'firstName lastName email' },
-      { 
-        path: 'lawyerId',
-        populate: { path: 'userId', select: 'firstName lastName email' }
-      }
-    ]);
+      { path: 'lawyerId', populate: { path: 'userId', select: 'firstName lastName email' } },
+    ])
 
-    return createSuccessResponse(
-      booking,
-      'Booking approved successfully'
-    );
+    return createSuccessResponse(booking, 'Booking approved successfully')
   } catch (error) {
-    return handleApiError(error);
+    return handleApiError(error)
   }
 }

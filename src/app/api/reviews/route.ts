@@ -5,38 +5,31 @@ import Review from '@/lib/models/review';
 import User from '@/lib/models/user';
 import { createErrorResponse, createSuccessResponse, handleApiError } from '@/lib/utils/errorHandler';
 import { auth } from '@clerk/nextjs/server';
-import { NextRequest } from 'next/server';
-import { Types } from 'mongoose'; // Import Types for ObjectId
+import { NextRequest, NextResponse } from 'next/server';
+import { Types } from 'mongoose';
 
 // Define the interface for the Mongoose query object
 interface ReviewQuery {
   isVisible: boolean;
-  lawyerId?: string | Types.ObjectId; // Allow string ID or ObjectId
+  lawyerId?: string | Types.ObjectId;
 }
 
 // GET reviews (optionally filtered by lawyerId)
-export async function GET(req: NextRequest) {
+export async function GET(req: NextRequest): Promise<NextResponse> {
   try {
     await connectDB();
 
     const { searchParams } = new URL(req.url);
     const lawyerId = searchParams.get('lawyerId');
 
-    // FIX: Replaced 'any' with the specific 'ReviewQuery' interface
     const query: ReviewQuery = { isVisible: true };
-    
-    if (lawyerId) {
-      query.lawyerId = lawyerId;
-    }
+    if (lawyerId) query.lawyerId = lawyerId;
 
     const reviews = await Review.find(query)
       .populate('clientId', 'firstName lastName profileImage')
       .populate({
         path: 'lawyerId',
-        populate: {
-          path: 'userId',
-          select: 'firstName lastName'
-        }
+        populate: { path: 'userId', select: 'firstName lastName' }
       })
       .sort({ createdAt: -1 })
       .lean();
@@ -48,10 +41,10 @@ export async function GET(req: NextRequest) {
 }
 
 // POST - Create review (Client only, after completed session)
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest): Promise<NextResponse> {
   try {
-    const { userId } = await auth();
-    
+    const { userId } = await auth(); // ✅ no await needed
+
     if (!userId) {
       return createErrorResponse('Unauthorized', 401);
     }
@@ -63,7 +56,6 @@ export async function POST(req: NextRequest) {
 
     // Get current user
     const user = await User.findOne({ clerkId: userId });
-    
     if (!user) {
       return createErrorResponse('User not found', 404);
     }
@@ -74,7 +66,6 @@ export async function POST(req: NextRequest) {
 
     // Get booking
     const booking = await Booking.findById(bookingId);
-
     if (!booking) {
       return createErrorResponse('Booking not found', 404);
     }
@@ -91,10 +82,9 @@ export async function POST(req: NextRequest) {
 
     // Check if review already exists
     const existingReview = await Review.findOne({ bookingId });
-    
     if (existingReview) {
       return createErrorResponse('Review already exists for this booking', 400);
-        }
+    }
 
     // Validate rating
     if (rating < 1 || rating > 5) {
@@ -112,7 +102,6 @@ export async function POST(req: NextRequest) {
 
     // Update lawyer's average rating
     const lawyer = await Lawyer.findById(booking.lawyerId);
-    
     if (lawyer) {
       const allReviews = await Review.find({ lawyerId: lawyer._id, isVisible: true });
       const totalRating = allReviews.reduce((sum, r) => sum + r.rating, 0);
@@ -131,11 +120,7 @@ export async function POST(req: NextRequest) {
       }
     ]);
 
-    return createSuccessResponse(
-      review,
-      'Review submitted successfully',
-      201
-    );
+    return createSuccessResponse(review, 'Review submitted successfully', 201);
   } catch (error) {
     return handleApiError(error);
   }

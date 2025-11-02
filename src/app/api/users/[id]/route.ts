@@ -15,12 +15,15 @@ interface UserUpdates {
 // GET user by ID
 export async function GET(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     await connectDB();
 
-    const user = await User.findById(params.id).select('-clerkId').lean();
+    // Await params before accessing id
+    const { id } = await params;
+
+    const user = await User.findById(id).select('-clerkId').lean();
     
     if (!user) {
       return createErrorResponse('User not found', 404);
@@ -35,7 +38,7 @@ export async function GET(
 // PATCH - Update user profile
 export async function PATCH(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const { userId } = await auth();
@@ -46,8 +49,11 @@ export async function PATCH(
 
     await connectDB();
 
+    // Await params before accessing id
+    const { id } = await params;
+
     // Get user
-    const user = await User.findById(params.id);
+    const user = await User.findById(id);
 
     if (!user) {
       return createErrorResponse('User not found', 404);
@@ -62,18 +68,16 @@ export async function PATCH(
 
     // Only allow certain fields to be updated
     const allowedUpdates = ['firstName', 'lastName', 'phone', 'profileImage'];
-    // FIX: Replaced 'any' with the specific 'UserUpdates' interface
     const updates: UserUpdates = {}; 
 
     for (const key of allowedUpdates) {
       if (body[key] !== undefined) {
-        // TypeScript infers the type check from the UserUpdates interface and the string keys
         updates[key as keyof UserUpdates] = body[key];
       }
     }
 
     const updatedUser = await User.findByIdAndUpdate(
-      params.id,
+      id,
       { $set: updates },
       { new: true, runValidators: true }
     ).select('-clerkId');
