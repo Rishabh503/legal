@@ -1,0 +1,26 @@
+TITLE: SUMMARY OF THE CONSUMER PROTECTION ACT, 2019
+
+--- SECTION: DEFINITION OF A CONSUMER ---
+A consumer is any person who buys any goods or avails any service for a consideration (payment). This includes both online and offline transactions. It does not include a person who obtains goods for resale or for any commercial purpose.
+
+--- SECTION: SIX BASIC CONSUMER RIGHTS ---
+The Act guarantees six fundamental rights to consumers:
+1.  Right to Safety: Protection from goods and services that are hazardous to life and property.
+2.  Right to be Informed: The right to be informed about the quality, quantity, potency, purity, standard, and price of goods or services.
+3.  Right to Choose: The right to be assured access to a variety of goods and services at competitive prices.
+4.  Right to be Heard: The right to have consumer interests heard and considered in appropriate forums.
+5.  Right to Seek Redressal: The right to seek legal remedy against unfair trade practices or restrictive trade practices or unscrupulous exploitation.
+6.  Right to Consumer Education: The right to acquire the knowledge and skill to be an informed consumer.
+
+--- SECTION: UNFAIR TRADE PRACTICES AND DEFECTIVE GOODS ---
+The Act protects consumers from unfair trade practices, such as false or misleading advertisements, offering fake discounts, or refusing to take back defective goods. A product is considered 'defective' if there is a fault, imperfection, or shortcoming in its quality, quantity, or purity. A service is considered 'deficient' if there is any fault or inadequacy in its quality or manner of performance.
+
+--- SECTION: E-COMMERCE AND MISLEADING ADVERTISEMENTS ---
+The Act includes specific provisions for e-commerce platforms. They are required to clearly display details about sellers, price, expiry date, and country of origin. They are also liable if they sell counterfeit products. The Act defines strict penalties for misleading advertisements, and both the manufacturer and the endorser (e.g., a celebrity) can be held liable.
+
+--- SECTION: CONSUMER DISPUTE REDRESSAL COMMISSIONS ---
+A three-tier system is established for resolving consumer disputes:
+1.  District Consumer Disputes Redressal Commission (DCDRC): For claims up to 50 lakh rupees.
+2.  State Consumer Disputes Redressal Commission (SCDRC): For claims between 50 lakh and 2 crore rupees.
+3.  National Consumer Disputes Redressal Commission (NCDRC): For claims above 2 crore rupees.
+A consumer can file a complaint in the commission that has jurisdiction over their case.

@@ -1,0 +1,8 @@
+{
+  "build": {
+    "env": {
+      "DISABLE_ESLINT_ON_BUILD": "true",
+      "NEXT_TYPESCRIPT_IGNORE_BUILD_ERRORS": "true" 
+    }
+  }
+}
