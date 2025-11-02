@@ -4,17 +4,16 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Navbar from '@/components/layout/Navbar';
-import { Calendar, Clock, CheckCircle, Star, Users, DollarSign } from 'lucide-react';
+import { Calendar, Clock, CheckCircle, Star, Users, DollarSign, Video } from 'lucide-react';
 import Link from 'next/link';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { IPopulatedBookingForLawyer, ILawyerProfile } from '@/types/models';
 
 export default function LawyerDashboard() {
   const { user, isLoaded } = useUser();
   const router = useRouter();
-  const [bookings, setBookings] = useState<IPopulatedBookingForLawyer[]>([]);
-  const [profile, setProfile] = useState<ILawyerProfile | null>(null);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [profile, setProfile] = useState<any>(null);
   const [stats, setStats] = useState({
     pending: 0,
     approved: 0,
@@ -56,12 +55,12 @@ export default function LawyerDashboard() {
         setBookings(bookingsData.data);
         
         // Calculate stats
-        const completed = bookingsData.data.filter((b: IPopulatedBookingForLawyer) => b.status === 'completed');
-        const totalEarnings = completed.reduce((sum: number, b: IPopulatedBookingForLawyer) => sum + b.amount, 0);
+        const completed = bookingsData.data.filter((b: any) => b.status === 'completed');
+        const totalEarnings = completed.reduce((sum: number, b: any) => sum + b.amount, 0);
         
         setStats({
-          pending: bookingsData.data.filter((b: IPopulatedBookingForLawyer) => b.status === 'pending').length,
-          approved: bookingsData.data.filter((b: IPopulatedBookingForLawyer) => b.status === 'approved').length,
+          pending: bookingsData.data.filter((b: any) => b.status === 'pending').length,
+          approved: bookingsData.data.filter((b: any) => b.status === 'approved').length,
           completed: completed.length,
           totalEarnings
         });
@@ -81,7 +80,7 @@ export default function LawyerDashboard() {
   };
 
   const handleApprove = async (bookingId: string) => {
-    const confirmedDateTime = prompt('Enter confirmed date and time (YYYY-MM-DD HH:MM):');
+    const confirmedDateTime = prompt('Enter confirmed date and time (YYYY-MM-DDTHH:MM):');
     if (!confirmedDateTime) return;
 
     try {
@@ -92,14 +91,13 @@ export default function LawyerDashboard() {
       });
 
       if (response.ok) {
-        toast.success('Booking approved!');
+        toast.success('Booking approved! Meeting link generated automatically.');
         fetchData();
       } else {
         toast.error('Failed to approve booking');
       }
     } catch (error) {
       toast.error('An error occurred');
-      console.log(error)
     }
   };
 
@@ -122,7 +120,6 @@ export default function LawyerDashboard() {
       }
     } catch (error) {
       toast.error('An error occurred');
-      console.log(error)
     }
   };
 
@@ -151,6 +148,10 @@ export default function LawyerDashboard() {
       </div>
     );
   }
+
+  // Separate bookings by status for easier display
+  const pendingBookings = bookings.filter(b => b.status === 'pending');
+  const approvedBookings = bookings.filter(b => b.status === 'approved');
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -255,59 +256,114 @@ export default function LawyerDashboard() {
           </div>
         </div>
 
+        {/* Approved Bookings with Meeting Links */}
+        {approvedBookings.length > 0 && (
+          <div className="legal-card p-6 mb-8">
+            <h2 className="text-xl font-bold text-gray-900 mb-6">Upcoming Sessions</h2>
+            <div className="space-y-4">
+              {approvedBookings.map((booking: any) => (
+                <div key={booking._id} className="border border-green-200 bg-green-50 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        {booking.clientId?.firstName} {booking.clientId?.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1).replace('-', ' ')} - {booking.durationType === 'half-hour' ? '30 min' : '60 min'}
+                      </p>
+                    </div>
+                    {getStatusBadge(booking.status)}
+                  </div>
+                  <div className="flex items-center text-sm text-gray-600 space-x-4 mb-3">
+                    <span>📅 {format(new Date(booking.confirmedDateTime || booking.preferredDate), 'MMM dd, yyyy')}</span>
+                    <span>🕐 {booking.confirmedDateTime ? format(new Date(booking.confirmedDateTime), 'HH:mm') : booking.preferredTime}</span>
+                    <span>💰 {booking.currency === 'INR' ? '₹' : '$'}{booking.amount}</span>
+                  </div>
+                  
+                  {booking.meetingLink && (
+                    <div className="bg-white border border-green-300 p-3 rounded-lg">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Video className="h-5 w-5 text-green-700" />
+                        <h4 className="font-medium text-green-900">Meeting Link:</h4>
+                      </div>
+                      <a
+                        href={booking.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline font-medium text-sm break-all block mb-3"
+                      >
+                        {booking.meetingLink}
+                      </a>
+                      <a
+                        href={booking.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                      >
+                        <Video className="h-4 w-4 mr-2" />
+                        Join Video Call
+                      </a>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Pending Bookings */}
         <div className="legal-card p-6">
           <h2 className="text-xl font-bold text-gray-900 mb-6">Pending Booking Requests</h2>
           
-          {bookings.filter(b => b.status === 'pending').length === 0 ? (
+          {pendingBookings.length === 0 ? (
             <div className="text-center py-12">
               <Calendar className="h-16 w-16 text-gray-300 mx-auto mb-4" />
               <p className="text-gray-600">No pending bookings</p>
             </div>
           ) : (
             <div className="space-y-4">
-              {bookings.filter(b => b.status === 'pending').map((booking) => {
-                // Type guard to check if clientId is populated
-                const client = typeof booking.clientId === 'object' ? booking.clientId : null;
-
-                return (
-                  <div key={booking._id.toString()} className="border border-gray-200 rounded-lg p-4">
-                    <div className="flex items-start justify-between mb-3">
-                      <div className="flex-1">
-                        <h3 className="font-bold text-gray-900 mb-1">
-                          {client ? `${client.firstName} ${client.lastName}` : 'Client Name Not Available'}
-                        </h3>
-                        <p className="text-sm text-gray-600 mb-2">
-                          {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1).replace('-', ' ')} - {booking.durationType === 'half-hour' ? '30 min' : '60 min'}
-                        </p>
-                        <p className="text-sm text-gray-700 mb-2">
-                          <strong>Issue:</strong> {booking.issueDescription}
-                        </p>
-                      </div>
-                      {getStatusBadge(booking.status)}
+              {pendingBookings.map((booking: any) => (
+                <div key={booking._id} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex-1">
+                      <h3 className="font-bold text-gray-900 mb-1">
+                        {booking.clientId?.firstName} {booking.clientId?.lastName}
+                      </h3>
+                      <p className="text-sm text-gray-600 mb-2">
+                        {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1).replace('-', ' ')} - {booking.durationType === 'half-hour' ? '30 min' : '60 min'}
+                      </p>
+                      <p className="text-sm text-gray-700 mb-2">
+                        <strong>Issue:</strong> {booking.issueDescription}
+                      </p>
                     </div>
-                    <div className="flex items-center text-sm text-gray-600 space-x-4 mb-3">
-                      <span>📅 {format(new Date(booking.preferredDate), 'MMM dd, yyyy')}</span>
-                      <span>🕐 {booking.preferredTime}</span>
-                      <span>💰 {booking.currency === 'INR' ? '₹' : '$'}{booking.amount}</span>
-                    </div>
-                    <div className="flex space-x-3">
-                      <button
-                        onClick={() => handleApprove(booking._id.toString())}
-                        className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
-                      >
-                        Approve
-                      </button>
-                      <button
-                        onClick={() => handleReject(booking._id.toString())}
-                        className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
-                      >
-                        Reject
-                      </button>
-                    </div>
+                    {getStatusBadge(booking.status)}
                   </div>
-                );
-              })}
+                  <div className="flex items-center text-sm text-gray-600 space-x-4 mb-3">
+                    <span>📅 {format(new Date(booking.preferredDate), 'MMM dd, yyyy')}</span>
+                    <span>🕐 {booking.preferredTime}</span>
+                    <span>💰 {booking.currency === 'INR' ? '₹' : '$'}{booking.amount}</span>
+                  </div>
+                  <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                    <p className="text-sm text-blue-900">
+                      <strong>📹 Note:</strong> Meeting link will be generated automatically when you approve this booking.
+                    </p>
+                  </div>
+                  <div className="flex space-x-3">
+                    <button
+                      onClick={() => handleApprove(booking._id)}
+                      className="flex-1 bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700 transition-colors"
+                    >
+                      Approve & Generate Link
+                    </button>
+                    <button
+                      onClick={() => handleReject(booking._id)}
+                      className="flex-1 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700 transition-colors"
+                    >
+                      Reject
+                    </button>
+                  </div>
+                </div>
+              ))}
             </div>
           )}
         </div>

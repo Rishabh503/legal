@@ -4,12 +4,11 @@ import { useState, useEffect } from 'react';
 import Navbar from '@/components/layout/Navbar';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
-import { Calendar, Filter } from 'lucide-react';
-import { IPopulatedBookingForLawyer } from '@/types/models';
+import { Calendar, Filter, Video } from 'lucide-react';
 
 export default function LawyerBookingsPage() {
-  const [bookings, setBookings] = useState<IPopulatedBookingForLawyer[]>([]);
-  const [filteredBookings, setFilteredBookings] = useState<IPopulatedBookingForLawyer[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [filteredBookings, setFilteredBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState('all');
 
@@ -45,24 +44,21 @@ export default function LawyerBookingsPage() {
     const confirmedDateTime = prompt('Enter confirmed date and time (YYYY-MM-DDTHH:MM):');
     if (!confirmedDateTime) return;
 
-    const meetingLink = prompt('Enter meeting link (optional):');
-
     try {
       const response = await fetch(`/api/bookings/${bookingId}/approve`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ confirmedDateTime, meetingLink })
+        body: JSON.stringify({ confirmedDateTime })
       });
 
       if (response.ok) {
-        toast.success('Booking approved successfully');
+        toast.success('Booking approved! Meeting link generated automatically.');
         fetchBookings();
       } else {
         toast.error('Failed to approve booking');
       }
     } catch (error) {
       toast.error('An error occurred');
-      console.log(error)
     }
   };
 
@@ -85,7 +81,6 @@ export default function LawyerBookingsPage() {
       }
     } catch (error) {
       toast.error('An error occurred');
-      console.log(error)
     }
   };
 
@@ -109,7 +104,6 @@ export default function LawyerBookingsPage() {
       }
     } catch (error) {
       toast.error('An error occurred');
-      console.log(error)
     }
   };
 
@@ -169,93 +163,119 @@ export default function LawyerBookingsPage() {
           </div>
         ) : (
           <div className="space-y-4">
-            {filteredBookings.map((booking) => {
-              // Type guard to check if clientId is populated
-              const client = typeof booking.clientId === 'object' ? booking.clientId : null;
-
-              return (
-                <div key={booking._id.toString()} className="legal-card p-6">
-                  <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
-                    <div className="flex-1 mb-4 md:mb-0">
-                      <div className="flex items-center space-x-3 mb-2">
-                        <h3 className="text-xl font-bold text-gray-900">
-                          {client ? `${client.firstName} ${client.lastName}` : 'Client Name Not Available'}
-                        </h3>
-                        {getStatusBadge(booking.status)}
-                      </div>
-                      <p className="text-gray-600 mb-2">
-                        {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1).replace('-', ' ')} - {booking.durationType === 'half-hour' ? '30 minutes' : '60 minutes'}
-                      </p>
-                      <div className="flex flex-wrap gap-4 text-sm text-gray-600">
-                        <span>📅 {format(new Date(booking.preferredDate), 'MMM dd, yyyy')}</span>
-                        <span>🕐 {booking.preferredTime}</span>
-                        <span>💰 {booking.currency === 'INR' ? '₹' : '$'}{booking.amount}</span>
-                        <span className={`font-medium ${booking.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
-                          Payment: {booking.paymentStatus}
-                        </span>
-                      </div>
-                      {client?.email && (
-                        <p className="text-sm text-gray-600 mt-2">
-                          📧 {client.email}
-                        </p>
-                      )}
+            {filteredBookings.map((booking: any) => (
+              <div key={booking._id} className="legal-card p-6">
+                <div className="flex flex-col md:flex-row md:items-start md:justify-between mb-4">
+                  <div className="flex-1 mb-4 md:mb-0">
+                    <div className="flex items-center space-x-3 mb-2">
+                      <h3 className="text-xl font-bold text-gray-900">
+                        {booking.clientId?.firstName} {booking.clientId?.lastName}
+                      </h3>
+                      {getStatusBadge(booking.status)}
                     </div>
-                  </div>
-
-                  <div className="border-t pt-4">
-                    <h4 className="font-medium text-gray-900 mb-2">Client Issue:</h4>
-                    <p className="text-gray-700 mb-3">{booking.issueDescription}</p>
-                    
-                    {booking.clientNotes && (
-                      <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                        <h4 className="font-medium text-gray-900 mb-1">Client Notes:</h4>
-                        <p className="text-gray-700 text-sm">{booking.clientNotes}</p>
-                      </div>
-                    )}
-
-                    {booking.lawyerNotes && (
-                      <div className="bg-blue-50 p-3 rounded-lg mb-3">
-                        <h4 className="font-medium text-gray-900 mb-1">Your Notes:</h4>
-                        <p className="text-gray-700 text-sm">{booking.lawyerNotes}</p>
-                      </div>
-                    )}
-
-                    {booking.confirmedDateTime && (
-                      <p className="text-sm text-green-700 font-medium">
-                        ✓ Confirmed: {format(new Date(booking.confirmedDateTime), 'PPpp')}
+                    <p className="text-gray-600 mb-2">
+                      {booking.sessionType.charAt(0).toUpperCase() + booking.sessionType.slice(1).replace('-', ' ')} - {booking.durationType === 'half-hour' ? '30 minutes' : '60 minutes'}
+                    </p>
+                    <div className="flex flex-wrap gap-4 text-sm text-gray-600">
+                      <span>📅 {format(new Date(booking.preferredDate), 'MMM dd, yyyy')}</span>
+                      <span>🕐 {booking.preferredTime}</span>
+                      <span>💰 {booking.currency === 'INR' ? '₹' : '$'}{booking.amount}</span>
+                      <span className={`font-medium ${booking.paymentStatus === 'paid' ? 'text-green-600' : 'text-yellow-600'}`}>
+                        Payment: {booking.paymentStatus}
+                      </span>
+                    </div>
+                    {booking.clientId?.email && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        📧 {booking.clientId.email}
                       </p>
                     )}
                   </div>
+                </div>
 
-                  <div className="flex flex-wrap gap-3 mt-4">
-                    {booking.status === 'pending' && (
-                      <>
-                        <button
-                          onClick={() => handleApprove(booking._id.toString())}
-                          className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
-                        >
-                          Approve
-                        </button>
-                        <button
-                          onClick={() => handleReject(booking._id.toString())}
-                          className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
-                        >
-                          Reject
-                        </button>
-                      </>
-                    )}
-                    {booking.status === 'approved' && (
+                <div className="border-t pt-4">
+                  <h4 className="font-medium text-gray-900 mb-2">Client's Issue:</h4>
+                  <p className="text-gray-700 mb-3">{booking.issueDescription}</p>
+                  
+                  {booking.clientNotes && (
+                    <div className="bg-gray-50 p-3 rounded-lg mb-3">
+                      <h4 className="font-medium text-gray-900 mb-1">Client's Notes:</h4>
+                      <p className="text-gray-700 text-sm">{booking.clientNotes}</p>
+                    </div>
+                  )}
+
+                  {booking.lawyerNotes && (
+                    <div className="bg-blue-50 p-3 rounded-lg mb-3">
+                      <h4 className="font-medium text-gray-900 mb-1">Your Notes:</h4>
+                      <p className="text-gray-700 text-sm">{booking.lawyerNotes}</p>
+                    </div>
+                  )}
+
+                  {booking.confirmedDateTime && (
+                    <p className="text-sm text-green-700 font-medium mb-2">
+                      ✓ Confirmed: {format(new Date(booking.confirmedDateTime), 'PPpp')}
+                    </p>
+                  )}
+
+                  {booking.meetingLink && (booking.status === 'approved' || booking.status === 'completed') && (
+                    <div className="bg-green-50 border border-green-200 p-4 rounded-lg mb-3">
+                      <div className="flex items-center space-x-2 mb-2">
+                        <Video className="h-5 w-5 text-green-700" />
+                        <h4 className="font-medium text-green-900">Video Meeting Link:</h4>
+                      </div>
+                      <a
+                        href={booking.meetingLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 hover:underline font-medium break-all"
+                      >
+                        {booking.meetingLink}
+                      </a>
+                      <p className="text-xs text-gray-600 mt-2">Share this link with your client</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-3 mt-4">
+                  {booking.status === 'pending' && (
+                    <>
                       <button
-                        onClick={() => handleComplete(booking._id.toString())}
+                        onClick={() => handleApprove(booking._id)}
+                        className="px-4 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition-colors text-sm"
+                      >
+                        Approve & Generate Link
+                      </button>
+                      <button
+                        onClick={() => handleReject(booking._id)}
+                        className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors text-sm"
+                      >
+                        Reject
+                      </button>
+                    </>
+                  )}
+                  {booking.status === 'approved' && (
+                    <>
+                      <button
+                        onClick={() => handleComplete(booking._id)}
                         className="px-4 py-2 legal-button text-sm"
                       >
                         Mark as Completed
                       </button>
-                    )}
-                  </div>
+                      {booking.meetingLink && (
+                        <a
+                          href={booking.meetingLink}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors text-sm inline-flex items-center"
+                        >
+                          <Video className="h-4 w-4 mr-2" />
+                          Join Meeting
+                        </a>
+                      )}
+                    </>
+                  )}
                 </div>
-              );
-            })}
+              </div>
+            ))}
           </div>
         )}
       </div>
