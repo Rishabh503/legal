@@ -1,17 +1,26 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { useParams } from 'next/navigation';
-import { useUser } from '@clerk/nextjs';
-import Navbar from '@/components/layout/Navbar';
-import BookingForm from '@/components/booking/BookingForm'; 
-import ReviewList from '@/components/review/ReviewList'; 
-import { Star, Briefcase, Award, Globe, GraduationCap, Mail, Phone } from 'lucide-react';
-import Image from 'next/image';
-import Link from 'next/link';
-import { ILawyerProfile, IReviewModel, IUserModel } from '@/types/models';
+import { useState, useEffect, useCallback } from "react";
+import { useParams } from "next/navigation";
+import { useUser } from "@clerk/nextjs";
+import Navbar from "@/components/layout/Navbar";
+import BookingForm from "@/components/booking/BookingForm";
+import ReviewList from "@/components/review/ReviewList";
+import {
+  Star,
+  Briefcase,
+  Award,
+  Globe,
+  GraduationCap,
+  Mail,
+  Phone,
+  MessageCircle,
+} from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { ILawyerProfile, IReviewModel, IUserModel } from "@/types/models";
 
-interface IPopulatedReview extends Omit<IReviewModel, 'clientId'> {
+interface IPopulatedReview extends Omit<IReviewModel, "clientId"> {
   clientId: IUserModel;
 }
 
@@ -23,12 +32,7 @@ export default function LawyerDetailPage() {
   const [loading, setLoading] = useState(true);
   const [showBooking, setShowBooking] = useState(false);
 
-  useEffect(() => {
-    fetchLawyerDetails();
-    fetchReviews();
-  }, [params.id]);
-
-  const fetchLawyerDetails = async () => {
+  const fetchLawyerDetails = useCallback(async () => {
     try {
       const response = await fetch(`/api/lawyers/${params.id}`);
       const data = await response.json();
@@ -36,13 +40,13 @@ export default function LawyerDetailPage() {
         setLawyer(data.data);
       }
     } catch (error) {
-      console.error('Error fetching lawyer:', error);
+      console.error("Error fetching lawyer:", error);
     } finally {
       setLoading(false);
     }
-  };
+  }, [params.id]);
 
-  const fetchReviews = async () => {
+  const fetchReviews = useCallback(async () => {
     try {
       const response = await fetch(`/api/lawyers/${params.id}/reviews`);
       const data = await response.json();
@@ -50,9 +54,14 @@ export default function LawyerDetailPage() {
         setReviews(data.data.reviews || data.data);
       }
     } catch (error) {
-      console.error('Error fetching reviews:', error);
+      console.error("Error fetching reviews:", error);
     }
-  };
+  }, [params.id]);
+
+  useEffect(() => {
+    fetchLawyerDetails();
+    fetchReviews();
+  }, [params.id, fetchLawyerDetails, fetchReviews]);
 
   if (loading) {
     return (
@@ -76,7 +85,7 @@ export default function LawyerDetailPage() {
     );
   }
 
-  const user = typeof lawyer.userId === 'object' ? lawyer.userId : null;
+  const user = typeof lawyer.userId === "object" ? lawyer.userId : null;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -99,7 +108,8 @@ export default function LawyerDetailPage() {
                     />
                   ) : (
                     <div className="h-full w-full flex items-center justify-center text-3xl font-bold text-gray-600">
-                      {user?.firstName?.[0]}{user?.lastName?.[0]}
+                      {user?.firstName?.[0]}
+                      {user?.lastName?.[0]}
                     </div>
                   )}
                 </div>
@@ -138,21 +148,29 @@ export default function LawyerDetailPage() {
 
             {/* Experience & Stats */}
             <div className="legal-card p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Experience & Credentials</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-6">
+                Experience & Credentials
+              </h2>
               <div className="grid md:grid-cols-3 gap-6 mb-6">
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <Briefcase className="h-8 w-8 text-blue-900 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{lawyer.yearsOfExperience}</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {lawyer.yearsOfExperience}
+                  </div>
                   <div className="text-sm text-gray-600">Years Experience</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <Award className="h-8 w-8 text-blue-900 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{lawyer.totalCasesSolved}</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {lawyer.totalCasesSolved}
+                  </div>
                   <div className="text-sm text-gray-600">Cases Solved</div>
                 </div>
                 <div className="text-center p-4 bg-gray-50 rounded-lg">
                   <Star className="h-8 w-8 text-blue-900 mx-auto mb-2" />
-                  <div className="text-2xl font-bold text-gray-900">{lawyer.successRate}%</div>
+                  <div className="text-2xl font-bold text-gray-900">
+                    {lawyer.successRate}%
+                  </div>
                   <div className="text-sm text-gray-600">Success Rate</div>
                 </div>
               </div>
@@ -161,14 +179,20 @@ export default function LawyerDetailPage() {
                   <Globe className="h-5 w-5 text-gray-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
                     <p className="font-medium text-gray-900">Languages</p>
-                    <p className="text-gray-600">{lawyer.languagesSpoken.join(', ')}</p>
+                    <p className="text-gray-600">
+                      {lawyer.languagesSpoken.join(", ")}
+                    </p>
                   </div>
                 </div>
                 <div className="flex items-start">
                   <Award className="h-5 w-5 text-gray-600 mr-3 mt-0.5 flex-shrink-0" />
                   <div>
-                    <p className="font-medium text-gray-900">Bar Registration</p>
-                    <p className="text-gray-600">{lawyer.barRegistrationNumber}</p>
+                    <p className="font-medium text-gray-900">
+                      Bar Registration
+                    </p>
+                    <p className="text-gray-600">
+                      {lawyer.barRegistrationNumber}
+                    </p>
                   </div>
                 </div>
               </div>
@@ -176,7 +200,9 @@ export default function LawyerDetailPage() {
 
             {/* Education */}
             <div className="legal-card p-8">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">Education</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                Education
+              </h2>
               <div className="space-y-4">
                 {lawyer.education.map((edu, index: number) => (
                   <div key={index} className="flex items-start space-x-3">
@@ -184,7 +210,9 @@ export default function LawyerDetailPage() {
                     <div>
                       <p className="font-medium text-gray-900">{edu.degree}</p>
                       <p className="text-gray-600">{edu.university}</p>
-                      <p className="text-sm text-gray-500">Graduated {edu.yearOfGraduation}</p>
+                      <p className="text-sm text-gray-500">
+                        Graduated {edu.yearOfGraduation}
+                      </p>
                     </div>
                   </div>
                 ))}
@@ -204,18 +232,22 @@ export default function LawyerDetailPage() {
           <div className="lg:col-span-1">
             <div className="legal-card p-6 sticky top-24">
               <div className="mb-6">
-                <h3 className="text-xl font-bold text-gray-900 mb-4">Consultation Fees</h3>
+                <h3 className="text-xl font-bold text-gray-900 mb-4">
+                  Consultation Fees
+                </h3>
                 <div className="space-y-3">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">30 Minutes</span>
                     <span className="text-xl font-bold text-blue-900">
-                      {lawyer.fees.currency === 'INR' ? '₹' : '$'}{lawyer.fees.perHalfHour}
+                      {lawyer.fees.currency === "INR" ? "₹" : "$"}
+                      {lawyer.fees.perHalfHour}
                     </span>
                   </div>
                   <div className="flex justify-between items-center">
                     <span className="text-gray-600">60 Minutes</span>
                     <span className="text-xl font-bold text-blue-900">
-                      {lawyer.fees.currency === 'INR' ? '₹' : '$'}{lawyer.fees.perHour}
+                      {lawyer.fees.currency === "INR" ? "₹" : "$"}
+                      {lawyer.fees.perHour}
                     </span>
                   </div>
                 </div>
@@ -236,10 +268,19 @@ export default function LawyerDetailPage() {
                       onCancel={() => setShowBooking(false)}
                     />
                   )}
+                  <Link
+                    href={`/chat/${params.id}`}
+                    className="w-full bg-blue-900 text-white hover:bg-blue-800 px-4 py-2 rounded-lg font-medium flex items-center justify-center mt-4"
+                  >
+                    <MessageCircle className="h-5 w-5 mr-2" />
+                    Chat with Lawyer
+                  </Link>
                 </>
               ) : (
                 <div className="text-center">
-                  <p className="text-gray-600 mb-4">Sign in to book a consultation</p>
+                  <p className="text-gray-600 mb-4">
+                    Sign in to book a consultation
+                  </p>
                   <Link href="/sign-in" className="legal-button block">
                     Sign In
                   </Link>
