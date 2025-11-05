@@ -193,12 +193,12 @@ export default function LawyerBookingsPage() {
                 </div>
 
                 <div className="border-t pt-4">
-                  <h4 className="font-medium text-gray-900 mb-2">Client's Issue:</h4>
+                  <h4 className="font-medium text-gray-900 mb-2">Clients Issue:</h4>
                   <p className="text-gray-700 mb-3">{booking.issueDescription}</p>
                   
                   {booking.clientNotes && (
                     <div className="bg-gray-50 p-3 rounded-lg mb-3">
-                      <h4 className="font-medium text-gray-900 mb-1">Client's Notes:</h4>
+                      <h4 className="font-medium text-gray-900 mb-1">Clients Notes:</h4>
                       <p className="text-gray-700 text-sm">{booking.clientNotes}</p>
                     </div>
                   )}

@@ -18,9 +18,11 @@ function generateRoomId(length: number = 12): string {
 // POST - Approve booking (Lawyer only)
 export async function POST(
   req: NextRequest,
-  { params }: { params: { id: string } }
+  props: { params: Promise<{ id: string }> }
 ) {
   try {
+    // Await params in Next.js 15
+    const params = await props.params;
     const { userId } = await auth();
     
     if (!userId) {
@@ -86,5 +88,6 @@ export async function POST(
     );
   } catch (error) {
     return handleApiError(error);
+ 
   }
 }
