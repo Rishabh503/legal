@@ -1,8 +1,9 @@
 {
-  "build": {
-    "env": {
-      "DISABLE_ESLINT_ON_BUILD": "true",
-      "NEXT_TYPESCRIPT_IGNORE_BUILD_ERRORS": "true" 
-    }
+  "framework": "nextjs",
+  "buildCommand": "next build",
+  "installCommand": "npm install",
+  "env": {
+    "DISABLE_ESLINT_ON_BUILD": "true",
+    "NEXT_TYPESCRIPT_IGNORE_BUILD_ERRORS": "true"
   }
 }
