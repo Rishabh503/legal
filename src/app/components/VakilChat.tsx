@@ -75,7 +75,7 @@ export default function VakilChat({ documentText }: VakilChatProps) { // <-- CHA
         setIsLoading(true);
 
         try {
-            const response = await fetch('https://legalmate-a36k.onrender.com/api/ask-vakil', {
+            const response = await fetch('https://legalmate-2.onrender.com   ', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
