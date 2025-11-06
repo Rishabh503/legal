@@ -39,7 +39,7 @@ export default function VakilChat({ documentText }: VakilChatProps) { // <-- CHA
         const getIntroMessage = async () => {
             setIsLoading(true);
             try {
-                const response = await fetch('http://127.0.0.1:5000/api/advise', {
+                const response = await fetch('https://legalmate-2.onrender.com/api/advise', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ case_text: `Briefly (in one sentence) identify this document: ${documentText.substring(0, 500)}...` })
@@ -75,7 +75,7 @@ export default function VakilChat({ documentText }: VakilChatProps) { // <-- CHA
         setIsLoading(true);
 
         try {
-            const response = await fetch('https://legalmate-2.onrender.com   ', {
+            const response = await fetch('https://legalmate-2.onrender.com/api/ask-vakil', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
