@@ -363,7 +363,7 @@ export default function AIAdvisorPage() {
 
         try {
             // Using local API endpoint for consistency
-            const response = await fetch('https://legalmate-2.onrender.com   ', {
+            const response = await fetch('https://legalmate-2.onrender.com/api/advise', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
